@@ -4,7 +4,7 @@ import struct
 import logging
 import select
 import threading
-import utils
+from tftp import utils
 
 # TFTP mode
 MODE_OCTET = "octet"
@@ -40,7 +40,7 @@ class TFTPDClientHandler(threading.Thread):
         bind_ip,
         file_dir,
         wrq_enable=False,
-        default_retries=3,
+        retries=3,
         timeout=5,
         logger=None,
         root_logger=None,
@@ -59,7 +59,7 @@ class TFTPDClientHandler(threading.Thread):
         self.ip = bind_ip
         self.file_dir = file_dir
         self.wrq_enable = wrq_enable
-        self.default_retries = default_retries
+        self.default_retries = retries
         self.timeout = timeout
         self.retries = self.default_retries
         self.blksize = 512
@@ -347,7 +347,7 @@ class TFTPD:
         self.mode_verbose = server_settings.get("mode_verbose", True)  # verbose mode
         self.mode_debug = server_settings.get("mode_debug", False)  # debug mode
         self.logger = server_settings.get("logger", None)
-        self.default_retries = server_settings.get("default_retries", 3)
+        self.retries = server_settings.get("retries", 3)
         self.timeout = server_settings.get("timeout", 5)
 
         # setup socket
@@ -393,7 +393,7 @@ class TFTPD:
                         bind_ip=self.ip,
                         file_dir=self.file_dir,
                         wrq_enable=self.wrq_enable,
-                        default_retries=self.default_retries,
+                        retries=self.retries,
                         timeout=self.timeout,
                         logger=None,
                         root_logger=self.logger,

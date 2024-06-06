@@ -33,9 +33,36 @@ def download_file():
             flag=False, data=None, message="missing parameters"
         )
     filename = os.path.join(API_UPLOAD_FOLDER, filename)
-    if not os.path.exists(filename):
+    if not os.path.isfile(filename):
         return utils.json_uni_return(flag=False, data=None, message="file is not exist")
     return send_file(filename, as_attachment=True)
+
+
+@app.route(f"/{API_NAME}/file/del", methods=["POST"])
+def delete_file():
+    filepath = request.form.get("filepath", None)
+    filename = request.form.get("filename", None)
+    if filepath is None or filename is None:
+        return utils.json_uni_return(
+            flag=False, data=None, message="missing parameters"
+        )
+    if utils.is_valid_filepath(filepath) or utils.is_valid_filename(filename):
+        return utils.json_uni_return(
+            flag=False, data=None, message="invalid parameters"
+        )
+    fullpath = os.path.realpath(os.path.join(API_UPLOAD_FOLDER, filepath, filename))
+    if not utils.is_path_sub(API_UPLOAD_FOLDER, fullpath):
+        # invalid path
+        return utils.json_uni_return(flag=False, data=None, message="invalid filepath")
+    if os.path.isfile(fullpath):
+        # delete file
+        pass
+    elif os.path.isdir(fullpath):
+        # delete path
+        pass
+    else:
+        return utils.json_uni_return(flag=False, data=None, message="file is not exist")
+    return utils.json_uni_return(flag=True, data=None, message="deleted successfully")
 
 
 if __name__ == "__main__":

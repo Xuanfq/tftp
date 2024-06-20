@@ -2,10 +2,6 @@ import json
 import os
 
 
-def json_uni_return(flag: bool, data: any, message=""):
-    return {"flag": flag, "data": data, "message": message}
-
-
 def is_path_sub(parentpath, subpath):
     # Standardize paths to eliminate redundancy . 和 ..
     parentpath = os.path.realpath(parentpath)

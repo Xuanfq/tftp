@@ -12,7 +12,7 @@ class FileManagementSystem:
         self.retry_count = retry_count
         self.read_max_bytes = read_max_bytes
         if not os.path.isdir(self.root_path):
-            raise FileNotFoundError("Specified root directory does not exist.")
+            raise FileNotFoundError("Specified root path does not exist.")
         logging.basicConfig(
             level=logging.INFO if not debug else logging.DEBUG,
             format="%(asctime)s - %(levelname)s - %(message)s",
@@ -24,7 +24,7 @@ class FileManagementSystem:
     def _validate_and_get_abs_path(self, path):
         abs_path = Path(self.root_path) / path
         if not abs_path.is_relative_to(self.root_path):
-            return False, "The attempted path is outside the allowed scope."
+            return False, "Invalid path"
         return True, abs_path
 
     def _safe_operation(self, func, *args, **kwargs):
@@ -38,7 +38,7 @@ class FileManagementSystem:
             except Exception as e:
                 if try_count > 0:
                     continue
-                return False, "Operation failed. Reason: {}".format(e)
+                return False, str(e)
 
     def delete_file(self, file_path):
         valid, abs_path = self._validate_and_get_abs_path(file_path)
@@ -74,20 +74,20 @@ class FileManagementSystem:
         self.logger.info("Folder created: {}".format(abs_path))
         return True, None
 
-    def search(self, pattern, directory=None):
+    def search(self, pattern, path=None):
         """Search for files or folders by name pattern."""
         search_dir = (
             Path(self.root_path)
-            if directory is None
-            else self._validate_and_get_abs_path(directory)[1]
+            if path is None
+            else self._validate_and_get_abs_path(path)[1]
         )
         if not search_dir:
-            return False, "Invalid search directory."
+            return False, "Invalid path"
         results = [
             {
                 "name": p.name,
-                "is_directory": p.is_dir(),
-                "relative_path": str(p.relative_to(self.root_path)),
+                "is_dir": p.is_dir(),
+                "path": str(p.relative_to(self.root_path)),
                 "size": p.stat().st_size if not p.is_dir() else None,
             }
             for p in search_dir.glob(pattern)
@@ -104,22 +104,22 @@ class FileManagementSystem:
                 content = f.read(self.read_max_bytes)
             return True, content
         except Exception as e:
-            return False, "Failed to read file content. Reason: {}".format(e)
+            return False, str(e)
 
-    def list_directory_contents(self, directory=None):
+    def list_path_contents(self, path=None):
         """List directory contents."""
         target_dir = (
             Path(self.root_path)
-            if directory is None
-            else self._validate_and_get_abs_path(directory)[1]
+            if path is None
+            else self._validate_and_get_abs_path(path)[1]
         )
         if not target_dir:
-            return False, "Invalid directory path."
+            return False, "Invalid path"
         return True, [
             {
                 "name": entry.name,
-                "is_directory": entry.is_dir(),
-                "relative_path": str(entry.relative_to(self.root_path)),
+                "is_dir": entry.is_dir(),
+                "path": str(entry.relative_to(self.root_path)),
                 "size": entry.stat().st_size if not entry.is_dir() else None,
             }
             for entry in target_dir.iterdir()

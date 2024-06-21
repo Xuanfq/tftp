@@ -404,9 +404,9 @@ class TFTPD:
                     # client socket, so tell the client object it's ready
                     sock.parent.ready()
 
-    def start(self):
+    def run(self):
         self.listen()
 
 
 if __name__ == "__main__":
-    TFTPD().start()
+    TFTPD().run()

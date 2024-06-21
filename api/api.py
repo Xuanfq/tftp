@@ -4,17 +4,15 @@ from pathlib import Path
 import uuid
 import shutil
 import os
-from fs import FileManagementSystem
+from .fs import FileManagementSystem
 
 
-class FileSystemAPI:
+class FileSystemAPID:
     def __init__(
         self,
         name,
         root_path,
-        api_name: None,
-        app: Flask = None,
-        fs: FileManagementSystem = None,
+        api_name: str = None,
         api_support_delete_file: bool = True,
         api_support_delete_folder: bool = False,
         api_support_create_folder: bool = True,
@@ -22,8 +20,12 @@ class FileSystemAPI:
         api_support_search_file: bool = True,
         api_support_upload_file: bool = True,
         api_support_download_file: bool = True,
+        api_file_upload_max_size: int = 1024000,  # byte
+        api_host: str = "localhost",
+        api_port: int = 5000,
+        app: Flask = None,
+        fs: FileManagementSystem = None,
         debug: bool = False,
-        file_upload_max_size: int = 1024000,  # byte
     ) -> None:
         self.name = name
         self.root_path = os.path.abspath(root_path)
@@ -37,12 +39,14 @@ class FileSystemAPI:
         self.api_support_search_file = api_support_search_file
         self.api_support_upload_file = api_support_upload_file
         self.api_support_download_file = api_support_download_file
+        self.api_file_upload_max_size = api_file_upload_max_size
+        self.api_host = api_host
+        self.api_port = api_port
         self.debug = debug
-        self.file_upload_max_size = file_upload_max_size
         if app is None:
             self.app = Flask(self.name)
         if fs is None:
-            self.fs = FileManagementSystem(root_path)
+            self.fs = FileManagementSystem(root_path, debug=self.debug)
         self._init_app()
 
     def _uni_response(
@@ -71,7 +75,7 @@ class FileSystemAPI:
     def _init_app(self):
         app = self.app
         app.config["FS_ROOT_PATH"] = self.root_path
-        app.config["MAX_CONTENT_PATH"] = self.file_upload_max_size
+        app.config["MAX_CONTENT_PATH"] = self.api_file_upload_max_size
 
         @app.errorhandler(Exception)
         def handle_exception(e):
@@ -209,9 +213,9 @@ class FileSystemAPI:
                 )
 
     def run(self):
-        self.app.run(debug=self.debug)
+        self.app.run(host=self.api_host, port=self.api_port, debug=self.debug)
 
 
 if __name__ == "__main__":
-    fsapi = FileSystemAPI("TestFSAPI", "files", "api", debug=True)
-    fsapi.run()
+    fsapid = FileSystemAPID("TestFSAPI", "files", "api", debug=True)
+    fsapid.run()

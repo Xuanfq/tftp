@@ -110,7 +110,7 @@ def main():
         mode_verbose=args.MODE_VERBOSE,
         logger=None,
     )
-    tftpd.start()
+    tftpd.run()
 
 
 if __name__ == '__main__':

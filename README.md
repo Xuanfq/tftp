@@ -3,9 +3,14 @@ A simple tftp server with management.
 
 
 ## Usage
-- simple usage
+- tftp service
 ```sh
-sudo python3 -m  tftp.server --tftp-file-dir tftp/files/
+sudo python3 -m  tftp.server --tftp-file-dir `pwd`/files/
+```
+
+- api service
+```sh
+sudo python3 -m api.server --root-path `pwd`/files/
 ```
 
 

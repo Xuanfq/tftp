@@ -1,5 +1,5 @@
 # tftp
-A simple tftp server with management.
+A simple tftp server with api management.
 
 
 ## Usage

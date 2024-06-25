@@ -10,7 +10,7 @@ sudo python3 -m  tftp.server --tftp-file-dir `pwd`/files/
 
 
 
-# API
+# api
 
 
 ## Environment [dev]

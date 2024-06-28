@@ -22,6 +22,11 @@ SETTINGS = {
     "API_SUPPORT_UPLOAD_FILE": True,
     "API_SUPPORT_DOWNLOAD_FILE": True,
     "API_FILE_UPLOAD_MAX_SIZE": 1024000,
+    "API_AUTH": False,
+    "API_AUTH_SECRET_KEY": "tftpapifdskfjdfjklsdjflkdsjfdkfjklsj",
+    "API_AUTH_TOKEN_EXPIRES": 60 * 60 * 24,
+    "API_AUTH_USERNAME": "admin",
+    "API_AUTH_PASSWORD": "admin",
     "DEBUG": False,
 }
 
@@ -124,6 +129,41 @@ def parse_cli_arguments():
         help="enable debug mode",
         default=SETTINGS["DEBUG"],
     )
+    parser.add_argument(
+        "--api-auth",
+        action="store_true",
+        dest="API_AUTH",
+        help="enable api auth",
+        default=SETTINGS["API_AUTH"],
+    )
+    parser.add_argument(
+        "--api-auth-secret-key",
+        action="store",
+        dest="API_AUTH_SECRET_KEY",
+        help="api auth secret key",
+        default=SETTINGS["API_AUTH_SECRET_KEY"],
+    )
+    parser.add_argument(
+        "--api-auth-token-expires",
+        action="store",
+        dest="API_AUTH_TOKEN_EXPIRES",
+        help="api auth token expires (seconds)",
+        default=SETTINGS["API_AUTH_TOKEN_EXPIRES"],
+    )
+    parser.add_argument(
+        "--api-auth-username",
+        action="store",
+        dest="API_AUTH_USERNAME",
+        help="api auth login username",
+        default=SETTINGS["API_AUTH_USERNAME"],
+    )
+    parser.add_argument(
+        "--api-auth-password",
+        action="store",
+        dest="API_AUTH_PASSWORD",
+        help="api auth login password",
+        default=SETTINGS["API_AUTH_PASSWORD"],
+    )
 
     return parser.parse_args()
 
@@ -152,6 +192,11 @@ def main():
         api_support_upload_file=args.API_SUPPORT_UPLOAD_FILE,
         api_support_download_file=args.API_SUPPORT_DOWNLOAD_FILE,
         api_file_upload_max_size=args.API_FILE_UPLOAD_MAX_SIZE,
+        api_auth=args.API_AUTH,
+        api_auth_secret_key=args.API_AUTH_SECRET_KEY,
+        api_auth_token_expires=args.API_AUTH_TOKEN_EXPIRES,
+        api_auth_username=args.API_AUTH_USERNAME,
+        api_auth_password=args.API_AUTH_PASSWORD,
         debug=args.DEBUG,
     )
     fsapid.run()

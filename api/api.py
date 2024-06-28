@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
+from flask_jwt_extended import create_access_token, decode_token, JWTManager
 from werkzeug.utils import secure_filename
 from pathlib import Path
 import uuid
@@ -23,6 +24,11 @@ class FileSystemAPID:
         api_file_upload_max_size: int = 1024000,  # byte
         api_host: str = "localhost",
         api_port: int = 5000,
+        api_auth: bool = False,
+        api_auth_secret_key: str = "",
+        api_auth_token_expires: int = 86400,
+        api_auth_username: str = "",
+        api_auth_password: str = "",
         app: Flask = None,
         fs: FileManagementSystem = None,
         debug: bool = False,
@@ -43,6 +49,13 @@ class FileSystemAPID:
         self.api_host = api_host
         self.api_port = api_port
         self.debug = debug
+        self.api_auth = api_auth
+        self.api_auth_secret_key = api_auth_secret_key
+        self.api_auth_token_expires = api_auth_token_expires
+        self.api_auth_username = api_auth_username
+        self.api_auth_password = api_auth_password
+        self.api_auth_whitelist = ["/", f"/{self.api_name}/login"]
+        self.jwt = None
         if app is None:
             self.app = Flask(self.name)
         if fs is None:
@@ -76,6 +89,25 @@ class FileSystemAPID:
         app = self.app
         app.config["FS_ROOT_PATH"] = self.root_path
         app.config["MAX_CONTENT_PATH"] = self.api_file_upload_max_size
+        if self.api_auth:
+            app.config["JWT_SECRET_KEY"] = self.api_auth_secret_key
+            app.config["JWT_ACCESS_TOKEN_EXPIRES"] = self.api_auth_token_expires
+            self.jwt = JWTManager(app)
+
+        @app.before_request
+        def handle_auth():
+            """Global auth handler."""
+            url = request.path
+            if not self.api_auth:
+                return
+            if url in self.api_auth_whitelist:
+                return
+            token = request.args.get("token", default=None)
+            token = request.form.get("token", token)
+            if token is None:
+                raise Exception("Invild token")
+            res = decode_token(str(token).encode())
+            username = res["sub"]
 
         @app.errorhandler(Exception)
         def handle_exception(e):
@@ -107,6 +139,20 @@ class FileSystemAPID:
                     None,
                     500,
                 )
+
+        if self.api_auth:
+
+            @app.route(f"/{self.api_name}/login", methods=["POST"])
+            def login():
+                username = request.form.get("username", None)
+                password = request.form.get("password", None)
+                if (
+                    username != self.api_auth_username
+                    or password != self.api_auth_password
+                ):
+                    raise Exception("Username or password incorrect!")
+                token = create_access_token(identity=username)
+                return self._uni_response(True, "Success", token)
 
         if self.api_support_delete_file:
 
@@ -217,5 +263,14 @@ class FileSystemAPID:
 
 
 if __name__ == "__main__":
-    fsapid = FileSystemAPID("TestFSAPI", "files", "api", debug=True)
+    fsapid = FileSystemAPID(
+        "TestFSAPI",
+        "files",
+        "api",
+        debug=True,
+        api_auth=True,
+        api_auth_username="admin",
+        api_auth_password="admin",
+        api_auth_secret_key="fdslfjlsdjflajfksdj",
+    )
     fsapid.run()
